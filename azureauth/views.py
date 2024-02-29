@@ -1,5 +1,6 @@
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.response import Response
+from django.http import JsonResponse
 import requests
 from django.views.decorators.csrf import csrf_exempt
 import json
@@ -10,7 +11,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.exceptions import AuthenticationFailed
 from .serializers import UserSerializer
 from django.db import IntegrityError
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
 @csrf_exempt
@@ -124,3 +125,39 @@ def getUsersdata(request):
         return Response(serializer.data)
     else:
         return Response({'message': 'Method not allowed'})
+
+@csrf_exempt
+@api_view(['POST'])
+@authentication_classes([JWTAuthentication])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def editUser(request):
+    if request.method == 'POST':
+        # Extract data from request body
+        body_data = json.loads(request.body.decode('utf-8'))
+        user_id = body_data.get('userid')
+        name = body_data.get('name')
+        email = body_data.get('email')
+        is_staff = body_data.get('is_staff')
+
+        # Check if user_id is provided
+        if not user_id:
+            return JsonResponse({'error': 'id required'}, status=400)
+
+        # Check if user exists
+        user = User.objects.filter(id=user_id).first()
+        if user is None:
+            return JsonResponse({'error': 'User not found'}, status=404)
+
+        # Update user details
+        if name:
+            user.name = name
+        if email:
+            user.email = email
+        if is_staff is not None:
+            user.is_staff = is_staff
+        user.save()
+
+        # Return updated user details
+        return JsonResponse({'success': 'User updated', 'user': {'id': user.id, 'name': user.name, 'email': user.email, 'is_staff': user.is_staff}})
+    else:
+        return JsonResponse({'error': 'Method not allowed'})

@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, name, password=None, sso=False):
+    def create_user(self, email, name, password=None, sso=False,  **extra_fields):
         if not email:
             raise ValueError('Users must have an email address')
         if not name:
@@ -11,7 +11,8 @@ class UserManager(BaseUserManager):
         user = self.model(
             email=self.normalize_email(email),
             name=name,
-            sso=sso
+            sso=sso,
+            **extra_fields
         )
 
         user.set_password(password)
@@ -22,6 +23,7 @@ class User(AbstractBaseUser):
     name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
     sso = models.BooleanField(default=False)  # Flag to indicate SSO user
+    is_staff = models.BooleanField(default=False)  # Flag to indicate admin user
     username = None
 
     objects = UserManager()

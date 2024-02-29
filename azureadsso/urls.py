@@ -16,10 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from azureauth.views import SSOuserRegistration, Signup, signin, getUsersdata
+from azureauth.views import SSOuserRegistration, Signup, signin, getUsersdata, editUser
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
+    TokenVerifyView
 )
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -27,6 +28,8 @@ urlpatterns = [
     path('api/signup/', Signup, name='Signup'),
     path('api/signin/', signin, name='Sign-in'),
     path('api/users', getUsersdata, name='Get usersuss data'),
+    path('api/editusers/', editUser, name = "edit user" ),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh')# Define the sign-in URL
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/token/verify/', TokenVerifyView.as_view(), name='token_verify')# Define the sign-in URL
 ]
